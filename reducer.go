@@ -23,8 +23,8 @@ func NewReducer[T any](array []T) *Reducer[T] {
 // Creates a new Reducer from a Mapper.
 //
 // See NewMapperFromReducer for the inverse operation.
-func (m *Mapper[T, U]) NewReducer() *Reducer[T] {
-	return NewReducer[T](m.array)
+func (m *Mapper[T, U]) NewReducerFromMapper() *Reducer[T] {
+	return NewReducer(m.array)
 }
 
 // A typical ForEach implementation, chainable.

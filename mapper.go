@@ -52,7 +52,7 @@ func (m *Mapper[T, U]) Map(f func(T, int, []T) Optional[U]) *Reducer[U] {
 		}
 		result = append(result, r.value)
 	}
-	return NewReducer[U](result)
+	return NewReducer(result)
 }
 
 // FlatMap is a flatten version of Map.
@@ -66,35 +66,35 @@ func (m *Mapper[T, U]) FlatMap(f func(T, int, []T) []U) *Reducer[U] {
 	for i, v := range m.array {
 		result = append(result, f(v, i, m.array)...)
 	}
-	return NewReducer[U](result)
+	return NewReducer(result)
 }
 
 // See ForEach in reducer.go.
 func (m *Mapper[T, U]) ForEach(f func(T, int, []T)) *Mapper[T, U] {
-	return NewMapperFromReducer[T, U](m.NewReducer().ForEach(f))
+	return NewMapperFromReducer[T, U](m.NewReducerFromMapper().ForEach(f))
 }
 
 // See Reduce in reducer.go.
 func (m *Mapper[T, U]) Reduce(f func(T, T, int, []T) T) T {
-	return m.NewReducer().Reduce(f)
+	return m.NewReducerFromMapper().Reduce(f)
 }
 
 // See Filter in reducer.go.
 func (m *Mapper[T, U]) Filter(f func(T, int, []T) bool) *Mapper[T, U] {
-	return NewMapperFromReducer[T, U](m.NewReducer().Filter(f))
+	return NewMapperFromReducer[T, U](m.NewReducerFromMapper().Filter(f))
 }
 
 // See FilterIndex in reducer.go.
 func (m *Mapper[T, U]) FilterIndex(f func(T, int, []T) bool) []int {
-	return m.NewReducer().FilterIndex(f)
+	return m.NewReducerFromMapper().FilterIndex(f)
 }
 
 // See Splice in reducer.go.
 func (m *Mapper[T, U]) Splice(start int, deleteCount int, items ...T) *Mapper[T, U] {
-	return NewMapperFromReducer[T, U](m.NewReducer().Splice(start, deleteCount, items...))
+	return NewMapperFromReducer[T, U](m.NewReducerFromMapper().Splice(start, deleteCount, items...))
 }
 
 // See Slice in reducer.go.
 func (m *Mapper[T, U]) Slice(start int, end int) *Mapper[T, U] {
-	return NewMapperFromReducer[T, U](m.NewReducer().Slice(start, end))
+	return NewMapperFromReducer[T, U](m.NewReducerFromMapper().Slice(start, end))
 }

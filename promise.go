@@ -29,16 +29,16 @@ func NewPromise[T any](f func() (T, error)) *Promise[T] {
 
 // Then applies successFn to the result of a Promise[T] if it is successful.
 func (p *Promise[T]) Then(successFn func(T) (T, error)) *Promise[T] {
-	res, _ := p.Await()
 	return NewPromise[T](func() (T, error) {
+		res, _ := p.Await()
 		return successFn(res)
 	})
 }
 
 // Catch applies failFn to the error of a Promise[T] if it is failed.
 func (p *Promise[T]) Catch(failFn func(error) error) *Promise[T] {
-	res, err := p.Await()
 	return NewPromise[T](func() (T, error) {
+		res, err := p.Await()
 		return res, failFn(err)
 	})
 }
@@ -70,7 +70,7 @@ func AwaitAll[T any](promises ...*Promise[T]) *Promise[[]T] {
 			}(promise)
 		}
 		wg.Wait()
-		if (e != nil) {
+		if e != nil {
 			return nil, e
 		}
 		return res, nil

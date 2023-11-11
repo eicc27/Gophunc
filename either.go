@@ -30,3 +30,19 @@ func (e *Either[L, R]) IsLeft() bool {
 func (e *Either[L, R]) IsRight() bool {
 	return e.right.isSet
 }
+
+// ThenIfLeft applies f to the left value of an Either[L, R] if it is a Left.
+func (e *Either[L, R]) ThenIfLeft(f func(L) L) *Either[L, R] {
+	if e.IsLeft() {
+		e.left.value = f(e.left.value)
+	}
+	return e
+}
+
+// ThenIfRight applies f to the right value of an Either[L, R] if it is a Right.
+func (e *Either[L, R]) ThenIfRight(f func(R) R) *Either[L, R] {
+	if e.IsRight() {
+		e.right.value = f(e.right.value)
+	}
+	return e
+}
