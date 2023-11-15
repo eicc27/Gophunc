@@ -41,3 +41,11 @@ func (o *Optional[T]) Then(f func(T) T) *Optional[T] {
 	}
 	return o
 }
+
+// OrElse applies f if the value of an Optional[T] is not set.
+func (o *Optional[T]) OrElse(f func()) *Optional[T] {
+	if o.isSet {
+		f()
+	}
+	return o
+}

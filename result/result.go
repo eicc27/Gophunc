@@ -70,3 +70,13 @@ func (r *Result[T]) IfErrorThen(f func(error)) *Result[T] {
 	}
 	return r
 }
+
+// AsOK asserts the result is OK and returns the OK value.
+func (r *Result[T]) AsOK() T {
+	return r.Right.Value()
+}
+
+// AsError asserts the result is an error and returns the error.
+func (r *Result[T]) AsError() error {
+	return r.Left.Value()
+}
