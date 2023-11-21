@@ -227,14 +227,17 @@ func (r *TypedArray[T, U]) Slice(start int, end int) *TypedArray[T, U] {
 // Index the array with the given index.
 // Supports negative index.
 // If the index is too large, it will dropback to index = -1.
-func (r *TypedArray[T, U]) At(index int) T {
+func (r *TypedArray[T, U]) At(index int) *O.Optional[T] {
+	if len(r.array) == 0 {
+		return O.Nothing[T]()
+	}
 	if index >= len(r.array) {
 		index = -1
 	}
 	if index < 0 {
 		index = len(r.array) + index
 	}
-	return r.array[index]
+	return O.Just(r.array[index])
 }
 
 // Returns the length of the array.
@@ -251,25 +254,25 @@ func (r *TypedArray[T, U]) Push(items ...T) *TypedArray[T, U] {
 // Pop pops an item at the end of the array.
 // If the array does not have any item to pop,
 // it does nothing and returns a nothing optional.
-func (r *TypedArray[T, U]) Pop() O.Optional[T] {
+func (r *TypedArray[T, U]) Pop() *O.Optional[T] {
 	if r.Length() < 1 {
-		return *O.Nothing[T]()
+		return O.Nothing[T]()
 	}
 	popped := r.At(-1)
 	*r = *r.Slice(0, -1)
-	return *O.Just(popped)
+	return popped
 }
 
 // Shift pops an element at the first of the array.
 // If the array does not have any item to pop,
 // it does nothing and returns a nothing optional.
-func (r *TypedArray[T, U]) Shift() O.Optional[T] {
+func (r *TypedArray[T, U]) Shift() *O.Optional[T] {
 	if r.Length() < 1 {
-		return *O.Nothing[T]()
+		return O.Nothing[T]()
 	}
 	shifted := r.At(0)
 	*r = *r.Slice(1, r.Length())
-	return *O.Just(shifted)
+	return shifted
 }
 
 // Unshift pushes items at the beginning of the array.
