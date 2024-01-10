@@ -7,7 +7,7 @@ package array
 // Range will try to set step = 1 instead.
 func Range(start int, end int, step int) []int {
 	result := make([]int, 0)
-	if (step == 0) {
+	if step == 0 {
 		step = 1
 	}
 	if step > 0 {
@@ -24,11 +24,11 @@ func Range(start int, end int, step int) []int {
 
 // TypedRange wraps the result of range into a TypedArray.
 func TypedRange(start int, end int, step int) *TypedArray[int, any] {
-	return NewTypedArray(Range(start, end, step)...)
+	return New(Range(start, end, step)...)
 }
 
 // Count behaves like Python range(0, end, 1).
-func Count(end int) []int{
+func Count(end int) []int {
 	return Range(0, end, 1)
 }
 
@@ -36,7 +36,6 @@ func Count(end int) []int{
 func TypedCount(end int) *TypedArray[int, any] {
 	return TypedRange(0, end, 1)
 }
-
 
 // CountStep behaves like Python range(0, end, step).
 func CountStep(end int, step int) []int {

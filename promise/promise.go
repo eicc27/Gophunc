@@ -9,9 +9,10 @@ import (
 )
 
 // Ported from JavaScript and realized with channels and goroutines.
-// Once a promise is constructed, the task starts as a goroutine immediately.
+// Once a promise is constructed, the task starts as a goroutine immediately,
+// and could not be interrupted or stopped from outside controls.
 type Promise[T any] struct {
-	result chan T
+	fulfill chan T
 	err    error
 }
 
@@ -34,16 +35,16 @@ type Promise[T any] struct {
 // 	promise.All(task(1), task(2)).Await() // 1, 2(t_2), 2(t_1), _, 3
 func New[T any](f func() R.Result[T]) *Promise[T] {
 	p := &Promise[T]{
-		result: make(chan T),
+		fulfill: make(chan T),
 	}
 	go func() {
 		r := f()
 		r.IfErrorThen(func(err error) {
 			p.err = err
 		}).IfOKThen(func(t T) {
-			p.result <- t
+			p.fulfill <- t
 		})
-		close(p.result)
+		close(p.fulfill)
 	}()
 	return p
 }
@@ -76,7 +77,7 @@ func (p *Promise[T]) Catch(failFn func(error)) *Promise[T] {
 // Await blocks the main goroutine and waits for the result of a Promise[T].
 // Note that await closes the channel of the Promise[T] after it is called.
 func (p *Promise[T]) Await() R.Result[T] {
-	res := <-p.result
+	res := <-p.fulfill
 	return *R.NewResult(res, p.err)
 }
 
@@ -144,6 +145,6 @@ func Any[T any](promises ...*Promise[T]) *Promise[O.Optional[T]] {
 // Await waits for the result of a Promise[T]. Note that await closes
 // the channel of the Promise[T] after it is called.
 func Await[T any](p *Promise[T]) R.Result[T] {
-	res := <-p.result
+	res := <-p.fulfill
 	return *R.NewResult(res, p.err)
 }

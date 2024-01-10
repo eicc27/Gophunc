@@ -28,8 +28,8 @@ func (t *TypedArray[T, U]) SimpleForEach(f func(T)) *TypedArray[T, U] {
 
 // SimpleMap cuts off the filter function for reducing returning type of function from Optional[U] to U.
 func (t *TypedArray[T, U]) SimpleMap(f func(T) U) *TypedArray[U, any] {
-	return t.Map(func(t T, _ int, _ []T) optional.Optional[U] {
-		return *optional.Just(f(t))
+	return t.Map(func(t T, _ int, _ []T) *optional.Optional[U] {
+		return optional.Just(f(t))
 	})
 }
 

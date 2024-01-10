@@ -16,23 +16,37 @@ type TypedArray[T, U any] struct {
 	array []T
 }
 
-// NewMapperArray creates a new Mapper Array.
+// NewMapper creates a new Mapper Array.
 // It has 2 type parameters, T and U, which are the types of the input and output.
 //
 // Normally, you would only need to specify U for output value(s)
 // for T is inferred from the input array.
-func NewMapperArray[U, T any](items ...T) *TypedArray[T, U] {
+func NewMapper[U, T any](items ...T) *TypedArray[T, U] {
 	return &TypedArray[T, U]{
 		array: items,
 	}
 }
 
-// NewTypedArray craetes an array without specifying output type U.
+// The array version of NewMapperArray. Mind that
+// any changes to the array will affect the original array.
+func NewMapperFrom[U, T any](items []T) *TypedArray[T, U] {
+	return &TypedArray[T, U]{
+		array: items,
+	}
+}
+
+// New craetes an array without specifying output type U.
 // It is used for actions except the Map family.
 //
 // If Map ops are required, use WithType to add a type to the array.
-func NewTypedArray[T any](items ...T) *TypedArray[T, any] {
-	return NewMapperArray[any](items...)
+func New[T any](items ...T) *TypedArray[T, any] {
+	return NewMapper[any](items...)
+}
+
+// NewFrom creates a new TypedArray from an existing array.
+// Mind that any changes to the array will affect the original array.
+func NewFrom[T any](items []T) *TypedArray[T, any] {
+	return NewMapperFrom[any](items)
 }
 
 // WithType adds an output type to a single-typed array.
@@ -53,16 +67,17 @@ func WithType[U, T any](t *TypedArray[T, any]) *TypedArray[T, U] {
 // Returns a new array of type U.
 //
 // Example:
-// 	a := array.NewMapperArray[int](1, 2, 3).Map(
-// 		func(t1, i int, t2 []int) optional.Optional[int] {
-// 			if (t1 == 1) {
-// 				return *optional.Nothing[int]()
-// 			}
-// 			return *optional.Just(t1 + 1)
-// 		},
-// 	)
-// 	fmt.Println(a) // 3, 4
-func (m *TypedArray[T, U]) Map(f func(T, int, []T) O.Optional[U]) *TypedArray[U, any] {
+//
+//	a := array.NewMapperArray[int](1, 2, 3).Map(
+//		func(t1, i int, t2 []int) optional.Optional[int] {
+//			if (t1 == 1) {
+//				return *optional.Nothing[int]()
+//			}
+//			return *optional.Just(t1 + 1)
+//		},
+//	)
+//	fmt.Println(a) // 3, 4
+func (m *TypedArray[T, U]) Map(f func(T, int, []T) *O.Optional[U]) *TypedArray[U, any] {
 	result := make([]U, 0)
 	for i, v := range m.array {
 		r := f(v, i, m.array)
@@ -71,7 +86,7 @@ func (m *TypedArray[T, U]) Map(f func(T, int, []T) O.Optional[U]) *TypedArray[U,
 		}
 		result = append(result, r.Value())
 	}
-	return NewTypedArray(result...)
+	return New(result...)
 }
 
 // FlatMap is a flatten version of Map.
@@ -80,20 +95,21 @@ func (m *TypedArray[T, U]) Map(f func(T, int, []T) O.Optional[U]) *TypedArray[U,
 //
 // The result array of every application is flattened into a single array
 // as the return value.
-// 
+//
 // Example (Also see Range):
-//  a := array.NewMapperArray[int](1, 2, 3).FlatMap(
-//  	func(t1, i int, t2 []int) []int {
-//  		return array.Range(0, t1, 1)
-//  	},
-//  )
-//  fmt.Println(a)  // 0 0 1 0 1 2
+//
+//	a := array.NewMapperArray[int](1, 2, 3).FlatMap(
+//		func(t1, i int, t2 []int) []int {
+//			return array.Range(0, t1, 1)
+//		},
+//	)
+//	fmt.Println(a)  // 0 0 1 0 1 2
 func (m *TypedArray[T, U]) FlatMap(f func(T, int, []T) []U) *TypedArray[U, any] {
 	result := make([]U, 0)
 	for i, v := range m.array {
 		result = append(result, f(v, i, m.array)...)
 	}
-	return NewTypedArray(result...)
+	return New(result...)
 }
 
 // A typical ForEach implementation, chainable.
@@ -104,15 +120,16 @@ func (m *TypedArray[T, U]) FlatMap(f func(T, int, []T) []U) *TypedArray[U, any] 
 // Different from Map, ForEach does not return a new array.
 // Instead, it applies f for each element and returns the reducer itself.
 // This makes it more flexible as f can deal with outer variables.
-// 
+//
 // Example:
-//  b := array.NewTypedArray[int]()
-//  	array.NewTypedArray(1, 2, 3).ForEach(
-//  		func(t1, i int, t2 []int) {
-//  			b.Push(t1 + 1)
-//  		},
-//  	)
-//  fmt.Println(b) // 2 3 4
+//
+//	b := array.NewTypedArray[int]()
+//		array.NewTypedArray(1, 2, 3).ForEach(
+//			func(t1, i int, t2 []int) {
+//				b.Push(t1 + 1)
+//			},
+//		)
+//	fmt.Println(b) // 2 3 4
 func (r *TypedArray[T, U]) ForEach(f func(T, int, []T)) *TypedArray[T, U] {
 	for i, v := range r.array {
 		f(v, i, r.array)
@@ -126,14 +143,15 @@ func (r *TypedArray[T, U]) ForEach(f func(T, int, []T)) *TypedArray[T, U] {
 //
 // Starting from the first element, accumulator is updated by applying f
 // for each element. The final value of accumulator is returned.
-// 
+//
 // Example:
-//  r := array.NewTypedArray(1, 2, 3).Reduce(
-//  	func(t, t1, i int, t2 []int) int {
-//  		return t + t1
-//  	},
-//  )
-//  fmt.Println(r.Right.Value()) // 6
+//
+//	r := array.NewTypedArray(1, 2, 3).Reduce(
+//		func(t, t1, i int, t2 []int) int {
+//			return t + t1
+//		},
+//	)
+//	fmt.Println(r.Right.Value()) // 6
 func (r *TypedArray[T, U]) Reduce(f func(T, T, int, []T) T) R.Result[T] {
 	if r.Length() == 0 {
 		return *R.Error[T](errors.New("array to reduce must have at leat 1 element"))
@@ -157,7 +175,7 @@ func (r *TypedArray[T, U]) Filter(f func(T, int, []T) bool) *TypedArray[T, U] {
 			result = append(result, v)
 		}
 	}
-	return NewMapperArray[U](result...)
+	return NewMapper[U](result...)
 }
 
 // FilterIndex gets all indices of elements that satisfy the predicate f.
@@ -169,7 +187,7 @@ func (r *TypedArray[T, U]) FilterIndex(f func(T, int, []T) bool) *TypedArray[int
 			result = append(result, i)
 		}
 	}
-	return NewTypedArray(result...)
+	return New(result...)
 }
 
 // Splice does the operation in place, and returns the array of deleted elements.
@@ -182,13 +200,13 @@ func (r *TypedArray[T, U]) FilterIndex(f func(T, int, []T) bool) *TypedArray[int
 //
 // If the deleteCount is more than the number of elements or negative,
 // it removes all elements starting from start.
-// 
+//
 // If the start is too large(more than the length of the array),
 // it will only do insertion at the end of the array(equals to push).
 func (r *TypedArray[T, U]) Splice(start int, deleteCount int, items ...T) *TypedArray[T, U] {
-	if (start >= len(r.array)) {
+	if start >= len(r.array) {
 		r.Push(items...)
-		return NewMapperArray[U, T]()
+		return NewMapper[U, T]()
 	}
 	if start < 0 {
 		start = len(r.array) + start
@@ -210,7 +228,7 @@ func (r *TypedArray[T, U]) Splice(start int, deleteCount int, items ...T) *Typed
 // If start and end do not overlap, or start is too large, it returns an empty array.
 func (r *TypedArray[T, U]) Slice(start int, end int) *TypedArray[T, U] {
 	if start >= len(r.array) {
-		return NewMapperArray[U, T]()
+		return NewMapper[U, T]()
 	}
 	if start < 0 {
 		start = len(r.array) + start
@@ -219,9 +237,9 @@ func (r *TypedArray[T, U]) Slice(start int, end int) *TypedArray[T, U] {
 		end = len(r.array) + end
 	}
 	if start >= end {
-		return NewMapperArray[U, T]()
+		return NewMapper[U, T]()
 	}
-	return NewMapperArray[U](r.array[start:end]...)
+	return NewMapper[U](r.array[start:end]...)
 }
 
 // Index the array with the given index.
