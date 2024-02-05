@@ -5,14 +5,14 @@ import (
 	O "github.com/eicc27/Gophunc/optional"
 )
 
-// A type derived from Either[L, R]. The type L is 
+// A type derived from Either[L, R]. The type L is
 // locked as an error type to facilitate error handling.
 type Result[T any] E.Either[error, T]
 
 // Creates a new OK result.
 func OK[T any](t T) *Result[T] {
 	return &Result[T]{
-		Left: *O.Nothing[error](),
+		Left:  *O.Nothing[error](),
 		Right: *O.Just(t),
 	}
 }
@@ -29,14 +29,14 @@ func Error[T any](e error) *Result[T] {
 //
 // Example:
 //
-//	info, err := os.Stat("go.mod")
-//   result := result.NewResult(info, err)
-//   result.IfOKThen(func(t fs.FileInfo) {
-//   	fmt.Println(t.Name(), t.Size())
-//   }).IfErrorThen(func(err error) {
-//   	fmt.Println(err.Error())
-//   })
-func NewResult[T any](result T, e error) *Result[T] {
+//		info, err := os.Stat("go.mod")
+//	  result := result.New(info, err)
+//	  result.IfOKThen(func(t fs.FileInfo) {
+//	  	fmt.Println(t.Name(), t.Size())
+//	  }).IfErrorThen(func(err error) {
+//	  	fmt.Println(err.Error())
+//	  })
+func New[T any](result T, e error) *Result[T] {
 	if e != nil {
 		return Error[T](e)
 	}

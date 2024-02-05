@@ -3,17 +3,17 @@ package structs
 import (
 	"reflect"
 
-	"github.com/eicc27/Gophunc/array"
+	A "github.com/eicc27/Gophunc/array"
 )
 
 // Gets the keys of a field from a struct.
 // If the object is not a struct, returns an empty array.
-func Keys(object any) *array.TypedArray[string, any] {
+func Keys(object any) *A.TypedArray[string, any] {
 	if reflect.TypeOf(object).Kind() != reflect.Struct {
-		return array.New[string]()
+		return A.New[string]()
 	}
 	values := reflect.ValueOf(object)
-	return array.WithType[string](array.TypedCount(values.NumField())).SimpleMap(func(t int) string {
+	return A.WithType[string](A.TypedCount(values.NumField())).SimpleMap(func(t int) string {
 		return values.Type().Field(t).Name
 	})
 }

@@ -4,14 +4,14 @@ package set
 // It uses the uniqueness of keys in Go maps.
 type Set[T comparable] map[T]struct{}
 
-// NewSet creates a new Set from an array.
+// New creates a new Set from an array.
 // It does not ensure the order of elements.
 // Example:
 //
-//	 s := set.NewSet(1, 2, 3)
+//	 s := set.New(1, 2, 3)
 //		s.Add(3)
 //		fmt.Println(s.Keys()) // 3, 1, 2
-func NewSet[T comparable](items ...T) Set[T] {
+func New[T comparable](items ...T) Set[T] {
 	s := make(Set[T])
 	for _, v := range items {
 		s[v] = struct{}{}

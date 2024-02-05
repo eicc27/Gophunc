@@ -72,7 +72,7 @@ func (m *TypedMap[T, U]) ForEach(f func(T, U)) *TypedMap[T, U] {
 
 // ToSet converts the keys of the map to a set.
 func (m *TypedMap[T, U]) ToSet() set.Set[T] {
-	s := set.NewSet[T]()
+	s := set.New[T]()
 	for k := range m.m {
 		s.Add(k)
 	}
